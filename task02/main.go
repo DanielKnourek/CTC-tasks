@@ -17,34 +17,22 @@ type fuel_pump struct {
 	count int;
 }
 
-func createPump(fuel fuelType, waitLow int, waitHigh int) fuel_pump {
+func createPump(fuel fuelType, waitLow int, waitHigh int, count int) fuel_pump {
 	return fuel_pump{
 		pumpFuelType: fuel,
 		waitTime: [2]int{waitLow, waitHigh},
+		count: count,
 	}
 };
 
 func main() {
 	fmt.Println("-- Start --");
 
-	stations := [17]fuel_pump{
-		createPump(fuelGas, 1, 5),
-		createPump(fuelGas, 1, 5),
-		createPump(fuelGas, 1, 5),
-		createPump(fuelGas, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelLpg, 1, 5),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
+	stations := [4]fuel_pump{
+		createPump(fuelGas, 1, 5, 4),
+		createPump(fuelDiesel, 1, 5, 4),
+		createPump(fuelLpg, 1, 5, 1),
+		createPump(fuelElectric, 3, 10, 8),
 	}
 	fmt.Println(stations)
 }
