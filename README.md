@@ -11,3 +11,13 @@ Fibonacci closure
 |
 [Program main](task01/main.go)
 |
+
+## Task 02
+Gas station simulation
+
+|
+[Task 02 folder](task02/)
+|
+[Program main](task02/main.go)
+|
+![animation of task02](task02/animated/simAnimatedV1.gif)
