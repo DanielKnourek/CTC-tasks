@@ -19,7 +19,7 @@ auto se přidá do fronty stanice
 
 type car struct {
 	carFuel fuelType
-	SPZ     [7]string
+	SPZ     string
 }
 
 type fuelType int64
@@ -43,11 +43,11 @@ func createPump(fuel fuelType, waitLow float32, waitHigh float32) fuelPumpProps 
 	}
 }
 
-func reFuelJob(jobProps fuelPumpProps, registerQ chan int) func(wg *sync.WaitGroup, queue chan int) {
-	return func(wg *sync.WaitGroup, queue chan int) {
+func reFuelJob(jobProps fuelPumpProps, registerQ chan car) func(wg *sync.WaitGroup, queue chan car) {
+	return func(wg *sync.WaitGroup, queue chan car) {
 		defer wg.Done()
 		for job := range queue {
-			time.Sleep(time.Duration((float32(time.Second) * randRange(0.5, 2))))
+			time.Sleep(time.Duration((float32(time.Second) * randRange(jobProps.waitTime[0], jobProps.waitTime[1]))))
 			fmt.Println("Car refueled", job, " Lets go pay it!")
 			registerQ <- job
 		}
@@ -65,23 +65,35 @@ func createRegister(waitLow float32, waitHigh float32) registerProps {
 	}
 }
 
-func registerJob(jobProps registerProps) func(wg *sync.WaitGroup, queue chan int) {
-	return func(wg *sync.WaitGroup, queue chan int) {
+func registerJob(jobProps registerProps) func(wg *sync.WaitGroup, queue chan car) {
+	return func(wg *sync.WaitGroup, queue chan car) {
 		defer wg.Done()
 		for job := range queue {
-			time.Sleep(time.Duration((float32(time.Second) * randRange(0.5, 2))))
+			time.Sleep(time.Duration((float32(time.Second) * randRange(jobProps.waitTime[0], jobProps.waitTime[1]))))
 			fmt.Println("Payed: ", job)
 		}
 		fmt.Println("registerJob Done!")
 	}
 }
 
+func drivewayJob(fuelPump ...chan car) func(wg *sync.WaitGroup, queue chan car) {
+	return func(wg *sync.WaitGroup, queue chan car) {
+		defer wg.Done()
+		for job := range queue {
+			fmt.Println("New Car arrived", job)
+			fuelPump[0] <- job
+		}
+		fmt.Printf("Station driveway empty\n")
+	}
+}
+
 func simulation(numCustomers int, minArriveTime float32, maxArriveTime float32) {
 	registerWG := new(sync.WaitGroup)
 	pumpWG := new(sync.WaitGroup)
+	drivewayWG := new(sync.WaitGroup)
 
-	jobCreator := func(job func(wg *sync.WaitGroup, queue chan int), wg *sync.WaitGroup, count int) chan int {
-		jobQueue := make(chan int, 2)
+	jobCreator := func(job func(wg *sync.WaitGroup, queue chan car), wg *sync.WaitGroup, count int) chan car {
+		jobQueue := make(chan car, count)
 		for i := 0; i < count; i++ {
 			wg.Add(1)
 			go job(wg, jobQueue)
@@ -89,19 +101,26 @@ func simulation(numCustomers int, minArriveTime float32, maxArriveTime float32) 
 		return jobQueue
 	}
 	registerQ := jobCreator(registerJob(createRegister(0.5, 2)), registerWG, 2)
+
 	gasQ := jobCreator(reFuelJob(createPump(fuelGas, 1, 5), registerQ), pumpWG, 4)
 	dieselQ := jobCreator(reFuelJob(createPump(fuelDiesel, 1, 5), registerQ), pumpWG, 4)
 	lpgQ := jobCreator(reFuelJob(createPump(fuelLpg, 1, 5), registerQ), pumpWG, 1)
 	electricQ := jobCreator(reFuelJob(createPump(fuelElectric, 3, 10), registerQ), pumpWG, 8)
 
-	
-	gasQ <- 69
-	gasQ <- 420
-	gasQ <- 42
-	lpgQ <- 999
-	dieselQ <- 666
-	electricQ <- 333
+	drivewayQ := jobCreator(drivewayJob(gasQ, dieselQ, lpgQ, electricQ), drivewayWG, 1)
 
+	for i := 1; i <= numCustomers; i++ {
+		randfuel := fuelType(rand.Intn(int(fuelElectric)))
+		newCustomer := car{
+			carFuel: randfuel,
+			SPZ:     fmt.Sprintf("5L%1d %04d", randfuel, i),
+		}
+		drivewayQ <- newCustomer
+		time.Sleep(time.Duration((float32(time.Second) * randRange(minArriveTime, maxArriveTime))))
+	}
+
+	close(drivewayQ)
+	drivewayWG.Wait()
 	close(gasQ)
 	close(lpgQ)
 	close(dieselQ)
@@ -117,7 +136,8 @@ func randRange(min float32, max float32) float32 {
 
 func main() {
 	fmt.Println("-- Start --")
-	simulation(1000, 0.001, 0.1)
+	simulation(5, 0.001, 0.1)
+	// simulation(1000, 0.001, 0.1)
 	fmt.Println("--  End  --")
 
 }
