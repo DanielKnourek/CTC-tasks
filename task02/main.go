@@ -136,7 +136,8 @@ func randRange(min float32, max float32) float32 {
 
 func main() {
 	fmt.Println("-- Start --")
-	simulation(5, 0.001, 0.1)
+	// simulation(5, 0.001, 0.1)
+	simulation(100, 0.001, 0.1)
 	// simulation(1000, 0.001, 0.1)
 	fmt.Println("--  End  --")
 
