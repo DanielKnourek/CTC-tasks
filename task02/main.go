@@ -2,36 +2,60 @@ package main
 
 import (
 	"fmt"
-	// "sync"
+	"sync"
 	"math/rand"
 	"time"
 )
 
-type fuelType int64
+/*
+Gas station simulation
+auto se přidá do fronty stanice
+	z fronty stanice se snaži zaparkovat do fronty svojí pumpy
+		po natakování přejde do fronty pokladny
+		po zaplacení uvolní pokladnu
+	poté uvolní místo u dané pumpy
 
-const (
-	fuelGas fuelType = iota
-	fuelDiesel
-	fuelLpg
-	fuelElectric
-)
+*/
 
-type fuel_pump struct {
-	pumpFuelType fuelType
-	waitTime     [2]float32
-}
 
-type register struct {
-	waitTime [2]float32
-}
+// type fuelType int64
 
-func main() {
-	fmt.Println("-- Start --")
-	// simulation(1000, 0.001, 0.1)
-	fmt.Println(fuelType(randRange(0, float32(fuelElectric)+1)))
+// const (
+// 	fuelGas fuelType = iota
+// 	fuelDiesel
+// 	fuelLpg
+// 	fuelElectric
+// )
+
+// type fuel_pump struct {
+// 	pumpFuelType fuelType
+// 	waitTime     [2]float32
+// }
+
+// type register struct {
+// 	waitTime [2]float32
+// }
+
+func registerJob(wg *sync.WaitGroup, queue <-chan int) {
+	defer wg.Done()
+	for job := range queue {
+		time.Sleep(time.Duration((float32(time.Second) * randRange(0.5, 2))))
+		fmt.Println(job)
+	}
+	fmt.Println("Register worker Done!")
+
 }
 
 func simulation(numCustomers int, minArriveTime float32, maxArriveTime float32) {
+	jobWG := new(sync.WaitGroup)
+
+	jobCreator := func(job func(wg *sync.WaitGroup) , count int) {
+		for i := 0; i < count; i++ {
+			jobWG.Add(1)
+			go job(jobWG, )
+		}
+	}
+	jobCreator(registerJob, 2)
 	stations := createStation()
 	registers := createRegisters()
 	for i := numCustomers; i > 0; i-- {
@@ -39,66 +63,15 @@ func simulation(numCustomers int, minArriveTime float32, maxArriveTime float32) 
 		// go simDriver(fuelType())
 		// totalTime += time.Duration((float32(time.Second) * randRange(minArriveTime, maxArriveTime)))
 	}
-
-	fmt.Println(stations)
-	fmt.Println(registers)
-}
-
-func simDriver(carType fuelType) {
-	// go to queue pump
-	// sim fueling
-	// go to queue register
-	// sim paying
-
-}
-
-func simPump(simDuration time.Duration) {
-	time.Sleep(simDuration)
-}
-func simRegister(simDuration time.Duration) {
-	time.Sleep(simDuration)
 }
 
 func randRange(min float32, max float32) float32 {
 	return min + rand.Float32()*(max-min)
 }
 
-func createStation() [17]fuel_pump {
-	createPump := func(fuel fuelType, waitLow float32, waitHigh float32) fuel_pump {
-		return fuel_pump{
-			pumpFuelType: fuel,
-			waitTime:     [2]float32{waitLow, waitHigh},
-		}
-	}
-	return [17]fuel_pump{
-		createPump(fuelGas, 1, 5),
-		createPump(fuelGas, 1, 5),
-		createPump(fuelGas, 1, 5),
-		createPump(fuelGas, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelDiesel, 1, 5),
-		createPump(fuelLpg, 1, 5),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-		createPump(fuelElectric, 3, 10),
-	}
-}
-
-func createRegisters() [2]register {
-	createRegister := func(waitLow float32, waitHigh float32) register {
-		return register{
-			waitTime: [2]float32{waitLow, waitHigh},
-		}
-	}
-	return [2]register{
-		createRegister(0.5, 2),
-		createRegister(0.5, 2),
-	}
+func main() {
+	fmt.Println("-- Start --")
+	simulation(1000, 0.001, 0.1)
+	fmt.Println("--  End  --")
+	
 }
