@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"name": "workspace",
+			"path": ".."
+		},
+		{
+			"name": "backend",
+			"path": "../backend"
+		},
+		{
+			"path": "../frontend"
+		}
+	],
+	"settings": {
+		"thunder-client.customLocation": "/workspace/.vscode/ThunderClient"
+	}
+}

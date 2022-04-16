@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  dev_vscode:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        - VARIANT=1.17
+    volumes:
+      - .:/workspace/
+
+    cap_add:
+      # For debugging with dlv
+      - SYS_PTRACE
+    security_opt:
+      # For debugging with dlv
+      - seccomp:unconfined
+      
+    environment:
+      BACKEND_PORT: 8080
+      FRONTEND_PORT: 8081
+
+    tty: true
+    networks: [ 'stack' ]
+    depends_on: [ 'db_mongo' ]

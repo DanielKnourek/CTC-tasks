@@ -2,9 +2,13 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.195.0/containers/go
 {
 	"name": "Go app - task03",
-	"dockerComposeFile": "docker-compose.yml",
+	"dockerComposeFile": [
+		"../docker-compose.yml",
+		"docker-compose.devcontainer.yml"
+	],
 	"service": "dev_vscode",
-	"workspaceFolder": "/workspace",
+	"workspaceFolder": "/workspace/backend",
+	// "workspaceFolder": "/workspace",
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
 		"go.toolsManagement.checkForUpdates": "local",
@@ -15,18 +19,22 @@
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
 		"golang.Go",
+		"golang.go-nightly",
 		"eamodio.gitlens",
 		"donjayamanne.githistory",
+		"rangav.vscode-thunder-client"
 	],
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [9000],
+	"forwardPorts": [
+		8080
+	],
 	// Use 'portsAttributes' to set default properties for specific forwarded ports. More info: https://code.visualstudio.com/docs/remote/devcontainerjson-reference.
-	// "portsAttributes": {
-	// 	"9000": {
-	// 		"label": "Hello Remote World",
-	// 		"onAutoForward": "notify"
-	// 	}
-	// },
+	"portsAttributes": {
+		"8080": {
+			"label": "backend - task03",
+			"onAutoForward": "silent"
+		}
+	},
 	// Uncomment to connect as a non-root user. More info: https://aka.ms/vscode-remote/containers/non-root.
 	// "remoteUser": "vscode"
 }
