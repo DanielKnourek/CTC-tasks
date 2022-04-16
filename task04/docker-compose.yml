@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  backend:
+    image: "danielknourek/task04-backend:1.0.0"
+    networks: [ 'stack' ]
+    depends_on: [ 'db_mongo' ]
+    ports:
+      - "9000:9000"
+
+  db_mongo:
+    image: "mongo:5.0.6"
+    networks: [ 'stack' ]
+    restart: always
+
+    volumes:
+      - db_mongo_data:/data/db
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: root
+    #   MONGO_INITDB_ROOT_PASSWORD: example
+
+networks:
+  stack: {}
+
+volumes:
+  db_mongo_data: {}
