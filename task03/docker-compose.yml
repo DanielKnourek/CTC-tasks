@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend/
+      dockerfile: ./Dockerfile
+      args:
+        - BACKEND_PORT_ARG=9000
+    networks: [ 'stack' ]
+    depends_on: [ 'db_mongo' ]
+    ports:
+      - "9000:9000"
+
+  db_mongo:
+    image: "mongo:5.0.6"
+    networks: [ 'stack' ]
+    restart: always
+
+    volumes:
+      - db_mongo_data:/data/db
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: root
+    #   MONGO_INITDB_ROOT_PASSWORD: example
+
+  frontend_test:
+    build:
+      context: ./frontend/
+      dockerfile: ./Dockerfile
+      args:
+        - FRONTEND_PORT_ARG=9001
+    networks: [ 'stack' ]
+    depends_on: [ 'db_mongo', 'backend' ]
+    ports:
+      - "9001:9001"
+
+networks:
+  stack: {}
+
+volumes:
+  db_mongo_data: {}
