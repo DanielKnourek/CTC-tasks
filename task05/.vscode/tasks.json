@@ -1,0 +1,45 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "echo",
+            "type": "shell",
+            "command": "echo Hello ${fileDirname}",
+            "problemMatcher": []
+        },
+        {
+            "label": "run relative file",
+            "type": "shell",
+            "command": "cd ${fileDirname} && go run .",
+            "problemMatcher": []
+        },
+        {
+            "label": "run grpc/server",
+            "type": "shell",
+            "command": "cd /workspace/grpc/server && go run .",
+            "problemMatcher": []
+        },
+        {
+            "label": "run grpc/client",
+            "type": "shell",
+            "command": "cd /workspace/grpc/client && go run .",
+            "problemMatcher": []
+        },
+        {
+            "label": "compile .proto",
+            "type": "shell",
+            "command": "/workspace/generateProtoCode.sh",
+            "problemMatcher": []
+        },
+        {
+            "label": "restart run",
+            "type": "process",
+            "command": [
+                "${command:workbench.action.tasks.restartTask}",
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

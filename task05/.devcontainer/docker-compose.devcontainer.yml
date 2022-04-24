@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  dev_vscode:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        - VARIANT=1.17
+    volumes:
+      - .:/workspace/
+
+    cap_add:
+      # For debugging with dlv
+      - SYS_PTRACE
+    security_opt:
+      # For debugging with dlv
+      - seccomp:unconfined
+    environment:
+      GRPC_PORT: 50051
+      CLIENT_PORT: 8080
+      GRPC_ADDRESS: "localhost"
+      ETCD_ENDPOINTS: "db_etcd:2379"
+
+    tty: true
+    networks: [ 'stack', etcd_stack ]
+    depends_on: [ 'db_etcd' ]

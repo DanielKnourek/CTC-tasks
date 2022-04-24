@@ -1,0 +1,62 @@
+
+syntax = "proto3";
+
+option go_package = " github.com/DanielKnourek/CTC-tasks/trunk/task05/grpc/proto";
+package proto;
+
+service S_etcd {
+    rpc HelloWorld (HelloWorldRequest) returns (HelloWorldResponse) {};
+    rpc ListProducts (Empty) returns (ProductListResponse) {};
+    rpc GetProduct (ProductGetRequest) returns (ProductGetResponse) {};
+    rpc CreateProduct (ProductPostRequest) returns (ProductPostResponse) {};
+    rpc DeleteProduct (ProductDeleteRequest) returns (ProductDeleteResponse) {};
+}
+
+message Empty {
+}
+
+message HelloWorldRequest {
+    string Name = 1;
+}
+
+message HelloWorldResponse {
+    string Greeting = 1;
+}
+
+message Product {
+    string Name = 2;
+    int32 Ammount = 4;
+}
+
+// ListProducts returns a list of products
+message ProductListResponse {
+    repeated Product Products = 1;
+}
+
+// GetProduct returns a product
+message ProductGetRequest {
+    string Id = 1;
+}
+
+message ProductGetResponse {
+    Product Product = 1;
+}
+
+// PostProduct creates a new product
+message ProductPostRequest {
+    string Name = 1;
+    int32 Ammount = 3;
+}
+
+message ProductPostResponse {
+    Product Product = 1;
+}
+
+// DeleteProduct deletes a product
+message ProductDeleteRequest {
+    string Id = 1;
+}
+
+message ProductDeleteResponse {
+    string Id = 1;
+}

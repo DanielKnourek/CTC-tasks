@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  grpc_server:
+    build:
+      context: ./grpc/server
+      dockerfile: ./Dockerfile
+      args:
+        - GRPC_PORT_ARG=50051
+        - ETCD_ENDPOINTS_ARG=db_etcd:2379
+    networks: [ 'stack', 'etcd_stack' ]
+    depends_on: [ 'db_etcd' ]
+
+  grpc_client:
+    build:
+      context: ./grpc/client
+      dockerfile: ./Dockerfile
+      args:
+        - GRPC_PORT_ARG=50051
+        - GRPC_ADDRESS_ARG=grpc_server
+        - CLIENT_PORT_ARG=8080
+    networks: [ 'stack' ]
+    depends_on: [ 'db_etcd', 'grpc_server' ]
+    ports:
+      - "8080:8080"
+
+  db_etcd:
+    image: "bitnami/etcd:3.3.27"
+    networks: [ 'etcd_stack' ]
+    restart: always
+
+    environment:
+      - ETCDCTL_API=3
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+
+    volumes:
+      - etcd_data:/bitnami/etcd
+
+networks:
+  etcd_stack: {}
+  stack: {}
+
+volumes:
+  etcd_data: {}
