@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.1 (a9d05d509)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: grpc-server
+  name: grpc-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      io.kompose.service: grpc-server
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.1 (a9d05d509)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/etcd-stack: "true"
+        io.kompose.network/stack: "true"
+        io.kompose.service: grpc-server
+    spec:
+      containers:
+        - env:
+            - name: ETCD_ENDPOINTS
+              value: db-etcd:2379
+            - name: GRPC_PORT
+              value: "50051"
+          image: danielknourek/task05-server:1.0.0
+          name: grpc-server
+          resources: {}
+      restartPolicy: Always
+status: {}

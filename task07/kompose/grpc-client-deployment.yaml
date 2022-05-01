@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.1 (a9d05d509)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: grpc-client
+  name: grpc-client
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      io.kompose.service: grpc-client
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.1 (a9d05d509)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/stack: "true"
+        io.kompose.service: grpc-client
+    spec:
+      containers:
+        - env:
+            - name: CLIENT_PORT
+              value: "8080"
+            - name: GRPC_ADDRESS
+              value: grpc-server
+            - name: GRPC_PORT
+              value: "50051"
+          image: danielknourek/task05-client:1.0.0
+          name: grpc-client
+          ports:
+            - containerPort: 8080
+          resources: {}
+      restartPolicy: Always
+status: {}
