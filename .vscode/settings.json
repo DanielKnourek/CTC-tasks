@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "kubernetes://schema/apps/v1%40deployment": "file:///t%3A/M%C5%AFj%20disk/TUL-Level3/CTC/CTC-tasks/task07/k8s.yml"
+    }
+}
