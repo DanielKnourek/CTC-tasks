@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: task07
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd
+  labels:
+    app: etcd
+  namespace: task07
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etcd
+  serviceName: etcd
+  template:
+    metadata:
+      labels:
+        app: etcd
+      namespace: task07
+    spec:
+      containers:
+        - name: etcd
+          image: quay.io/coreos/etcd:v3.5.2
+          ports:
+            - containerPort: 2379
+              name: client
+            - containerPort: 2380
+              name: peer
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: client
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+            timeoutSeconds: 5
+          volumeMounts:
+            - mountPath: /var/run/etcd
+              name: data
+          command:
+            - /bin/sh
+            - -c
+            - |
+              PEERS="etcd-0=http://${HOSTNAME}:2380"
+              exec etcd --name ${HOSTNAME} \
+                --listen-peer-urls http://0.0.0.0:2380 \
+                --listen-client-urls http://0.0.0.0:2379 \
+                --advertise-client-urls http://${HOSTNAME}:2379 \
+                --initial-advertise-peer-urls http://${HOSTNAME}:2380 \
+                --initial-cluster-token etcd-cluster-1 \
+                --initial-cluster ${PEERS} \
+                --initial-cluster-state new \
+                --data-dir /var/run/etcd/default.etcd
+          resources: {}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        namespace: task07
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 8Gi
+        storageClassName: local-path
+        volumeMode: Filesystem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: etcd
+  name: etcd
+  namespace: task07
+spec:
+  clusterIP: None
+  ports:
+    - name: client
+      port: 2379
+    - name: peer
+      port: 2380
+  selector:
+    app: etcd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grpc-server
+  name: grpc-server
+  namespace: task07
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: grpc-server
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: grpc-server
+      namespace: task07
+    spec:
+      containers:
+        - name: grpc-server
+          image: danielknourek/task05-server:1.0.0
+          env:
+            - name: ETCD_ENDPOINTS
+              value: etcd:2379
+            - name: GRPC_PORT
+              value: "50051"
+
+          resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: grpc-server
+  name: grpc-server
+  namespace: task07
+spec:
+  ports:
+    - name: http
+      port: 50051
+      targetPort: 50051
+  selector:
+    app: grpc-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grpc-client
+  name: grpc-client
+  namespace: task07
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: grpc-client
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: grpc-client
+      namespace: task07
+    spec:
+      containers:
+        - name: grpc-client
+          image: danielknourek/task05-client:1.0.0
+          env:
+            - name: CLIENT_PORT
+              value: "8080"
+            - name: GRPC_ADDRESS
+              value: grpc-server
+            - name: GRPC_PORT
+              value: "50051"
+
+          ports:
+            - containerPort: 8080
+          resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: grpc-client
+  name: grpc-client
+  namespace: task07
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: grpc-client

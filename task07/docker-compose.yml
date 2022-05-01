@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  grpc_server:
+    image: "danielknourek/task05-server:1.0.0"
+    networks: [ 'stack', 'etcd_stack' ]
+    depends_on: [ 'db_etcd' ]
+    environment:
+      - GRPC_PORT=50051
+      - ETCD_ENDPOINTS=db_etcd:2379
+
+  grpc_client:
+    image: "danielknourek/task05-client:1.0.0"
+    networks: [ 'stack' ]
+    depends_on: [ 'db_etcd', 'grpc_server' ]
+    environment:
+      - GRPC_PORT=50051
+      - GRPC_ADDRESS=grpc_server
+      - CLIENT_PORT=8080
+    ports:
+      - "8080:8080"
+
+  db_etcd:
+    image: "bitnami/etcd:3.3.27"
+    networks: [ 'etcd_stack' ]
+    restart: always
+
+    environment:
+      - ETCDCTL_API=3
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+
+    volumes:
+      - etcd_data:/bitnami/etcd
+
+networks:
+  etcd_stack: {}
+  stack: {}
+
+volumes:
+  etcd_data: {}
